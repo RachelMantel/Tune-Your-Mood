@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TuneYourMood.Data;
 
@@ -11,9 +12,11 @@ using TuneYourMood.Data;
 namespace TuneYourMood.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250311153659_update")]
+    partial class update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,21 +24,6 @@ namespace TuneYourMood.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("RoleEntityUserEntity", b =>
-                {
-                    b.Property<int>("RolesId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("RolesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("RoleEntityUserEntity");
-                });
 
             modelBuilder.Entity("TuneYourMood.Core.Entities.RoleEntity", b =>
                 {
@@ -60,7 +48,12 @@ namespace TuneYourMood.Data.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("UserEntityId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserEntityId");
 
                     b.ToTable("Roles");
                 });
@@ -132,19 +125,11 @@ namespace TuneYourMood.Data.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("RoleEntityUserEntity", b =>
+            modelBuilder.Entity("TuneYourMood.Core.Entities.RoleEntity", b =>
                 {
-                    b.HasOne("TuneYourMood.Core.Entities.RoleEntity", null)
-                        .WithMany()
-                        .HasForeignKey("RolesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("TuneYourMood.Core.Entities.UserEntity", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Roles")
+                        .HasForeignKey("UserEntityId");
                 });
 
             modelBuilder.Entity("TuneYourMood.Core.Entities.SongEntity", b =>
@@ -160,6 +145,8 @@ namespace TuneYourMood.Data.Migrations
 
             modelBuilder.Entity("TuneYourMood.Core.Entities.UserEntity", b =>
                 {
+                    b.Navigation("Roles");
+
                     b.Navigation("SongList");
                 });
 #pragma warning restore 612, 618

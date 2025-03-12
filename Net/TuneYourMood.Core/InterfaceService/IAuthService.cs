@@ -13,6 +13,6 @@ namespace TuneYourMood.Core.InterfaceService
         string GenerateJwtToken(UserEntity user);
         bool ValidateUser(string usernameOrEmail, string password, out string[] roles, out UserEntity user);
         Result<LoginResponseDto> Login(string usernameOrEmail, string password);
-        Task<Result<bool>> Register(UserDto userDto);
+        Task<Result<LoginResponseDto>> Register(UserDto userDto);
     }
 }

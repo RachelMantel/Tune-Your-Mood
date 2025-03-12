@@ -1,50 +1,51 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TuneYourMood.Api.PostModels;
 using TuneYourMood.Core.DTOs;
 using TuneYourMood.Core.InterfaceService;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace TuneYourMood.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize] // דורש אימות בברירת מחדל לכל הפעולות
     public class SongController(IService<SongDto> songService, IMapper mapper) : ControllerBase
     {
-        readonly IService<SongDto> _songService = songService;
+        private readonly IService<SongDto> _songService = songService;
         private readonly IMapper _mapper = mapper;
 
-        // GET: api/<SongController>
+        // GET: api/Song - שליפת כל השירים (זמין לכל משתמש מחובר)
         [HttpGet]
-        public async Task<List<SongDto>> Get()
+        public async Task<ActionResult<List<SongDto>>> Get()
         {
-            return (List<SongDto>)await _songService.getallAsync();
+            return Ok(await _songService.getallAsync());
         }
 
-
-        // GET api/<SongController>/5
+        // GET api/Song/{id} - שליפת שיר לפי ID
         [HttpGet("{id}")]
         public async Task<ActionResult<SongDto>> Get(int id)
         {
-            if (await _songService.getByIdAsync(id) == null)
+            var song = await _songService.getByIdAsync(id);
+            if (song == null)
                 return NotFound();
-            return Ok(_songService.getByIdAsync(id));
+
+            return Ok(song);
         }
 
-
-        // POST api/<SongController>
+        // POST api/Song
         [HttpPost]
-        public async Task<ActionResult<bool>> Post([FromBody] SongPostModel song)
+        public async Task<ActionResult<SongDto>> Post([FromBody] SongPostModel song)
         {
             var songDto = _mapper.Map<SongDto>(song);
             songDto = await _songService.addAsync(songDto);
             return Ok(songDto);
-
         }
 
-        // PUT api/<SongController>/5
+        // PUT api/Song/{id}
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Put(int id, [FromBody] SongPostModel song)
         {
             var songDto = _mapper.Map<SongDto>(song);
@@ -52,7 +53,7 @@ namespace TuneYourMood.Api.Controllers
             return Ok(songDto);
         }
 
-        // DELETE api/<SongController>/5
+        // DELETE api/Song/{id} 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {

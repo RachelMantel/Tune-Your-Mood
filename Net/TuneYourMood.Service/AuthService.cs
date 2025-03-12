@@ -31,11 +31,11 @@ namespace TuneYourMood.Service
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            // Add roles as claims
-            foreach (var role in user.Roles.Select(r => r.RoleName))
+            foreach (var role in user.Roles?.Select(r => r.RoleName) ?? Enumerable.Empty<string>())
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
+
 
             var token = new JwtSecurityToken(
                 _configuration["Jwt:Issuer"],
@@ -86,7 +86,36 @@ namespace TuneYourMood.Service
             return Result<LoginResponseDto>.Failure("Invalid username or password.");
         }
 
-        public async Task<Result<bool>> Register(UserDto userDto)
+        //public async Task<Result<bool>> Register(UserDto userDto)
+        //{
+        //    var user = new UserEntity
+        //    {
+        //        Name = userDto.Name,
+        //        Email = userDto.Email,
+        //        Password = userDto.Password,
+        //        DateRegistration = DateTime.UtcNow,
+        //    };
+
+        //    var users = await _repositoryManager._userRepository.GetAsync();
+        //    if (users.Any(u =>
+        //            u.Name == user.Email ||
+        //            u.Email == user.Email ||
+        //            u.Email == user.Name))
+        //    {
+        //        return Result<bool>.Failure("Username or email already exists.");
+        //    }
+
+        //    var result = await _repositoryManager._userRepository.AddAsync(user);
+        //    if (result == null)
+        //    {
+        //        return Result<bool>.Failure("Failed to register user.");
+        //    }
+
+        //     _repositoryManager.save();
+        //    return Result<bool>.Success(true);
+        //}
+
+        public async Task<Result<LoginResponseDto>> Register(UserDto userDto)
         {
             var user = new UserEntity
             {
@@ -102,17 +131,35 @@ namespace TuneYourMood.Service
                     u.Email == user.Email ||
                     u.Email == user.Name))
             {
-                return Result<bool>.Failure("Username or email already exists.");
+                return Result<LoginResponseDto>.Failure("Username or email already exists.");
             }
 
             var result = await _repositoryManager._userRepository.AddAsync(user);
             if (result == null)
             {
-                return Result<bool>.Failure("Failed to register user.");
+                return Result<LoginResponseDto>.Failure("Failed to register user.");
             }
 
-             _repositoryManager.save();
-            return Result<bool>.Success(true);
+            _repositoryManager.save();
+
+            // יצירת טוקן למשתמש שנרשם
+            var token = GenerateJwtToken(user);
+
+            var userDtoResponse = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Password = user.Password
+            };
+
+            var response = new LoginResponseDto
+            {
+                User = userDtoResponse,
+                Token = token
+            };
+
+            return Result<LoginResponseDto>.Success(response);
         }
 
     }

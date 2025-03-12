@@ -26,7 +26,7 @@ namespace TuneYourMood.Core.Entities
 
         public DateTime UpdatedAt { get; set; }
 
-        ICollection<UserEntity>? Users { get; set; }
+        public List<UserEntity>? Users { get; set; }
 
     }
 }
